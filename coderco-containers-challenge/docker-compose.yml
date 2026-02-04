@@ -1,0 +1,59 @@
+# Docker Compose file format version
+version: "3.9"
+
+services:
+  # ----------------------------
+  # Flask web application service
+  # ----------------------------
+  web:
+    # Build the Flask image
+    build:
+      # The build context is the project root
+      # Docker can only access files inside this directory
+      context: .
+
+      # Use the Dockerfile located in the application folder
+      dockerfile: application/Dockerfile
+
+    # Map port 5000 on localhost to port 5000 inside the container
+    # host_port:container_port
+    ports:
+      - "5000:5000"
+
+    # Environment variables passed into the Flask container
+    # These are read in app.py using os.getenv()
+    environment:
+      # 'redis' is the service name below
+      # Docker Compose provides automatic DNS resolution
+      REDIS_HOST: redis
+      REDIS_PORT: 6379
+
+    # Ensure Redis starts before the web container
+    # NOTE: This does NOT wait for Redis to be "ready"
+    depends_on:
+      - redis
+
+  # ----------------------------
+  # Redis service
+  # ----------------------------
+  redis:
+    # Build Redis from Dockerfile
+    build:
+      # Same build context as the web service
+      context: .
+
+      # Use the Dockerfile inside the redis folder
+      dockerfile: redis/Dockerfile
+
+    # Attach a persistent volume to Redis
+    # This ensures data survives container restarts
+    volumes:
+      - redis-data:/data
+
+# ----------------------------
+# Named volumes
+# ----------------------------
+volumes:
+  # Docker-managed volume stored outside containers
+  # Redis writes its database files here
+  redis-data:
