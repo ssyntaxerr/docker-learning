@@ -15,10 +15,9 @@ services:
       # Use the Dockerfile located in the application folder
       dockerfile: application/Dockerfile
 
-    # Map port 5000 on localhost to port 5000 inside the container
-    # host_port:container_port
-    ports:
-      - "5000:5000"
+    # Expose port 5000
+    expose:
+      - "5000"
 
     # Environment variables passed into the Flask container
     # These are read in app.py using os.getenv()
@@ -49,6 +48,18 @@ services:
     # This ensures data survives container restarts
     volumes:
       - redis-data:/data
+
+
+  # Reverse proxy for the Flask app, handling external access and request distribution
+  nginx:
+    image: nginx:latest
+    ports:
+      - "5000:5000"
+    volumes:
+      - ./nginx.conf:/etc/nginx/nginx.conf
+    depends_on:
+      - web
+
 
 # ----------------------------
 # Named volumes
